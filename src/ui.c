@@ -14,7 +14,11 @@ int init_sdl(SDL_Window **win, SDL_Renderer **renderer) {
     return -1;
   }
 
-  max_window_size(&max_width, &max_height);
+  if (max_window_size(&max_width, &max_height) < 0) {
+    printf("SDL Error: %s\n", SDL_GetError());
+    return -1;
+  }
+  
 
   *win = SDL_CreateWindow(
     "Vu",
@@ -43,7 +47,10 @@ int load_image(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Win
   int max_width, max_height;
   char *title;
 
-  max_window_size(&max_width, &max_height);
+  if (max_window_size(&max_width, &max_height) < 0) {
+    printf("SDL Error: %s\n", SDL_GetError());
+    return -1;
+  }
 
   unsigned char *data = stbi_load(filename, &width, &height, &channels, 0);
   if (!data) {
@@ -229,8 +236,8 @@ int max_window_size(int *max_width, int *max_height) {
     printf("Could not retrieve monitor size: %s\n", SDL_GetError());
     return -1;
   }
-  max_width = &mode.w;
-  max_height = &mode.h;
+  *max_width = mode.w;
+  *max_height = mode.h;
   
   return 0;
 }
