@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   }
 
   Image img;
-  if (load_image(argv[1], renderer, &img, &win) < 0) {
+  if (load_image_data(argv[1], renderer, &img, &win) < 0) {
     return -1;
   }
 

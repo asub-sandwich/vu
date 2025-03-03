@@ -23,7 +23,7 @@ int max_window_size(int *max_width, int *max_height);
 int init_sdl(SDL_Window **win, SDL_Renderer **renderer);
 
 // Load image into buffer
-int load_image(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Window **win);
+int load_image_data(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Window **win);
 
 // rendering the zoom buttons
 void render_buttons(SDL_Renderer *renderer);

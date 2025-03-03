@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "io.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -42,8 +43,9 @@ int init_sdl(SDL_Window **win, SDL_Renderer **renderer) {
   return 0;
 }
 
-int load_image(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Window **win) {
+int load_image_data(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Window **win) {
   int width, height, channels;
+  unsigned char *data = NULL;
   int max_width, max_height;
   char *title;
 
@@ -52,7 +54,14 @@ int load_image(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Win
     return -1;
   }
 
-  unsigned char *data = stbi_load(filename, &width, &height, &channels, 0);
+  const char *ext = strrchr(filename, '.');
+
+  if (ext && strcmp(ext, ".tif") == 0) {
+    data = tiff_load(filename, &width, &height, &channels);
+  } else {
+    data = stbi_load(filename, &width, &height, &channels, 0);
+  }
+
   if (!data) {
     printf("Failed to load image: %s\n", filename);
     return -1;
