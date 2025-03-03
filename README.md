@@ -1,31 +1,37 @@
-# vuer
-A simple image viewer made with SDL and stb_image.
+<h1 align="center">vuer</h1>
 
-## Installing
+<h4 align="center">A minimal image viewer built with SDL2 and stb_image.</h4>
 
-### Install Dependencies
+## Key Features
 
-Debian based
-`
-  sudo apt install ninja meson libsdl2-dev
-`
-Fedora based
-`
-  sudo dnf install ninja meson SDL2-devel 
-`
-Arch based
-`
-  paru -S ninja meson sdl2
-`
+* Loads those images!
+* Zoom and pan, with ui zoom buttons
+* Thats it!
 
-### Building with meson
-`
-  git clone https://github.com/asub-sandwich/vu && cd vu
-  meson setup build
-  meson compile -C build
-`
+## Usage
 
-### Installation
-`
-  meson install -C build
-`
+```bash
+vu <image_path>
+```
+
+## Required Dependencies
+
+  * SDL2
+  * meson
+  * ninja
+
+## Installation
+
+```bash
+$ git clone https://github.com/asub-sandwich/vu
+$ cd vu
+$ meson setup build
+$ meson compile -C build
+$ meson install -C build
+```
+
+## License
+
+MIT
+
+---
