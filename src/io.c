@@ -9,6 +9,22 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+char* driver_name(enum Driver driver) {
+  switch (driver) {
+    case STB: return "STB";
+    case TIF: return "TIF";
+    default: return "";
+  }
+}
+
+void pimg_info(int w, int h, int c, int d, enum Driver driver) {
+  printf("Driver:    %s\n", driver_name(driver));
+  printf("Width:     %d\n", w);
+  printf("Height:    %d\n", h);
+  printf("Channels:  %d\n", c);
+  printf("Bit Depth: %d\n", d);
+}
+
 
 unsigned char* load_tiff_32t(TIFF* tif, int w, int h, int c, int tw, int th) {
   unsigned char* rgba_buf = (unsigned char*)malloc(w * h * 4);
@@ -125,6 +141,8 @@ ImageData* load_tiff(const char* filename) {
     TIFFGetField(tif, TIFFTAG_TILEWIDTH, &tw);
     TIFFGetField(tif, TIFFTAG_TILELENGTH, &th);
   }
+
+  pimg_info(w, h, c, d, TIF);
   
   image = (ImageData*)malloc(sizeof(ImageData));
 
@@ -178,6 +196,8 @@ ImageData* load_std(const char* filename) {
     printf("Could not malloc for STB\n");
     return NULL;
   }
+
+  
   image->filename = filename;
   image->driver = STB;
   image->data = stbi_load(filename, &w, &h, &c, 4);
@@ -188,6 +208,8 @@ ImageData* load_std(const char* filename) {
   image->is_tiled = 0;
   image->tile_width = 0;
   image->tile_height = 0;
+
+  pimg_info(w, h, c, 32, STB);
 
   return image;
 } 
