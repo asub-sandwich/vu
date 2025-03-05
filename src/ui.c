@@ -1,7 +1,5 @@
 #include "ui.h"
 #include "io.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 SDL_Rect zoom_in_button = { 20, 20, 30, 30 };
 SDL_Rect zoom_out_button = { 20, 60, 30, 30 };
@@ -11,12 +9,12 @@ int init_sdl(SDL_Window **win, SDL_Renderer **renderer) {
   int max_width, max_height;
 
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("Could not Initialize SDL. SDL Error: %s\n", SDL_GetError());
     return -1;
   }
 
   if (max_window_size(&max_width, &max_height) < 0) {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("Could not get monitor size. SDL Error: %s\n", SDL_GetError());
     return -1;
   }
   
@@ -30,13 +28,13 @@ int init_sdl(SDL_Window **win, SDL_Renderer **renderer) {
     SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN
   );
   if (!*win) {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("Could not create window. SDL Error: %s\n", SDL_GetError());
     return -1;
   }
 
   *renderer = SDL_CreateRenderer(*win, -1, SDL_RENDERER_ACCELERATED);
   if (!*renderer) {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("Could not create renderer. SDL Error: %s\n", SDL_GetError());
     return -1;
   }
   
@@ -44,79 +42,71 @@ int init_sdl(SDL_Window **win, SDL_Renderer **renderer) {
 }
 
 int load_image_data(const char *filename, SDL_Renderer *renderer, Image *img, SDL_Window **win) {
-  int width, height, channels;
-  unsigned char *data = NULL;
   int max_width, max_height;
   char *title;
 
   if (max_window_size(&max_width, &max_height) < 0) {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("Could not get monitor size. SDL Error: %s\n", SDL_GetError());
     return -1;
   }
+ 
 
-  const char *ext = strrchr(filename, '.');
+  ImageData* image = load_image(filename);
 
-  if (ext && strcmp(ext, ".tif") == 0) {
-    data = tiff_load(filename, &width, &height, &channels);
-  } else {
-    data = stbi_load(filename, &width, &height, &channels, 0);
-  }
-
-  if (!data) {
-    printf("Failed to load image: %s\n", filename);
+  if (!image) {
+    printf("Could not load image: %s\n", filename);
     return -1;
   }
 
   SDL_Surface *surface = SDL_CreateRGBSurfaceFrom(
-    data,
-    width,
-    height,
-    channels * 8,
-    width * channels,
+    image->data,
+    image->width,
+    image->height,
+    image->channels * 8,
+    image->width * image->channels,
     0x000000ff,
     0x0000ff00,
     0x00ff0000,
     0xff000000
   );
   if (!surface) {
-    printf("SDL Error: %s", SDL_GetError());
+    printf("Could not create surface. SDL Error: %s", SDL_GetError());
+    close_image(image);
     return -1;
   }
 
   img->texture = SDL_CreateTextureFromSurface(renderer, surface);
   if (!img->texture) {
-    printf("SDL Error: %s\n", SDL_GetError());
+    printf("Could not create texture. SDL Error: %s\n", SDL_GetError());
     SDL_FreeSurface(surface);
-    stbi_image_free(data);
     return -1;
   }
 
-  img->width = width;
-  img->height = height;
+  img->width = image->width;
+  img->height = image->height;
   img->scale = 1.0f;
   img->last_scale = 1.0f;
   img->dragging = 0;
 
   SDL_FreeSurface(surface);
-  stbi_image_free(data);
 
-  float scale_x = (float)max_width / width;
-  float scale_y = (float)max_height / height;
+  float scale_x = (float)max_width / image->width;
+  float scale_y = (float)max_height / image->height;
   float scale = (scale_x < 1.0f || scale_y < 1.0f) ? (scale_x < scale_y ? scale_x : scale_y) : 1.0f;
 
   img->scale = scale;
-  img->offset_x = (max_width - width * scale);
-  img->offset_y = (max_height - height * scale);
+  img->offset_x = (max_width - image->width * scale);
+  img->offset_y = (max_height - image->height * scale);
 
-  int win_width = (width * scale > max_width) ? max_width : width * scale;
-  int win_height = (height * scale > max_height) ? max_height : height * scale;
+  int win_width = (image->width * scale > max_width) ? max_width : image->width * scale;
+  int win_height = (image->height * scale > max_height) ? max_height : image->height * scale;
 
   if (asprintf(&title, "Vu: %s", filename) < 0) return -1;
 
   SDL_SetWindowSize(*win, win_width, win_height);
   SDL_SetWindowTitle(*win, title);
   free(title);
-
+  close_image(image);
   return 0;
 }
 
